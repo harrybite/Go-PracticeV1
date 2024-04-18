@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	sendfund "go-bank/SendFund"
 	deposit "go-bank/deposit"
 	users "go-bank/usersHandler"
 	withdraw "go-bank/withdrawal"
@@ -16,6 +17,7 @@ func main() {
 	fmt.Println("2. Add user")
 	fmt.Println("3. Deposit Money")
 	fmt.Println("4. Withdrwal Money")
+	fmt.Println("5. Send Money")
 
 	fmt.Scan(&choise)
 
@@ -26,21 +28,11 @@ func main() {
 	} else if choise == 3 {
 		deposit.DepositAmout()
 	} else if choise == 4 {
-		withdraw.WithdrwalMoney()
+		withdraw.WithdrawalMoney()
+	} else if choise == 5 {
+		sendfund.SendMoney()
 	} else {
 		fmt.Println("Thank you for visiting us!")
 	}
 
-}
-
-func WithDrwalMoney(balance float64) float64 {
-	var value float64
-	fmt.Print("Enter amount to withdrwal: ")
-	fmt.Scan(&value)
-	if value < balance {
-		balance = balance - value
-	} else {
-		fmt.Println("insufficient amount")
-	}
-	return balance
 }

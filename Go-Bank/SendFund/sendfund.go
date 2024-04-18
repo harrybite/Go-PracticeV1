@@ -1,24 +1,25 @@
-package withdrawal
+package sendfund
 
 import (
 	"fmt"
-	users "go-bank/usersHandler"
+	"go-bank/usersHandler"
 )
 
-func WithdrawalMoney() error {
-	var address string
+func SendMoney() error {
+	var senderaddress string
+	var receiveraddress string
 	var amount int64
 	var pin int
-	bank, err := users.ReadBankData()
+
+	bank, err := usersHandler.ReadBankData()
 	if err != nil {
 		return fmt.Errorf("error reading bank data: %v", err)
 	}
 
 	fmt.Println("Enter your address:")
-	fmt.Scan(&address)
+	fmt.Scan(&senderaddress)
 
-	// Check if the user exists
-	if _, exists := bank.Users[address]; !exists {
+	if _, exists := bank.Users[senderaddress]; !exists {
 		fmt.Println("User not found")
 		return nil
 	}
@@ -27,12 +28,12 @@ func WithdrawalMoney() error {
 	fmt.Scan(&pin)
 
 	// Check if the entered PIN is correct
-	if bank.Users[address].Pin != pin {
+	if bank.Users[senderaddress].Pin != pin {
 		fmt.Println("Incorrect PIN")
 		return nil
 	}
 
-	fmt.Println("Enter amount to withdraw:")
+	fmt.Println("Enter amount:")
 	fmt.Scan(&amount)
 
 	// Validate the withdrawal amount
@@ -42,20 +43,29 @@ func WithdrawalMoney() error {
 	}
 
 	// Check if the withdrawal amount is greater than the user's balance
-	if amount > bank.Users[address].Balance {
+	if amount > bank.Users[senderaddress].Balance {
 		fmt.Println("Insufficient balance")
 		return nil
 	}
 
-	// Update user's balance
-	bank.Users[address].Balance -= amount
+	fmt.Println("Enter receiver address:")
+	fmt.Scan(&receiveraddress)
+
+	if _, exists := bank.Users[receiveraddress]; !exists {
+		fmt.Println("receiver not found")
+		return nil
+	}
+
+	bank.Users[senderaddress].Balance -= amount
+	bank.Users[receiveraddress].Balance += amount
 
 	// Write updated bank data back to the file
-	err = users.WriteBankData(bank)
+	err = usersHandler.WriteBankData(bank)
 	if err != nil {
 		return fmt.Errorf("error writing bank data: %v", err)
 	}
 
-	fmt.Println("Withdrawal successful")
+	fmt.Println("Money transfer successfully")
 	return nil
+
 }
