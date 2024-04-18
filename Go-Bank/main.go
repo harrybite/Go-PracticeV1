@@ -2,43 +2,35 @@ package main
 
 import (
 	"fmt"
+	deposit "go-bank/deposit"
+	users "go-bank/usersHandler"
+	withdraw "go-bank/withdrawal"
 )
 
 func main() {
-	var balance float64 = 1000
 	var choise int
 	fmt.Println("Welcome to Go-Bank!")
 	fmt.Println("Select the following operation")
 
-	fmt.Println("1. Check Balance")
-	fmt.Println("2. Deposit Money")
-	fmt.Println("3. Withdrwal Money")
-	fmt.Printf("4.  Add user")
+	fmt.Println("1. Check User")
+	fmt.Println("2. Add user")
+	fmt.Println("3. Deposit Money")
+	fmt.Println("4. Withdrwal Money")
 
 	fmt.Scan(&choise)
 
 	if choise == 1 {
-		printBalance(balance)
+		users.UserChecker()
 	} else if choise == 2 {
-		balance := depositMoney(balance)
-		printBalance(balance)
+		users.AddNewUser()
 	} else if choise == 3 {
-		balance := WithDrwalMoney(balance)
-		printBalance(balance)
+		deposit.DepositAmout()
 	} else if choise == 4 {
-
+		withdraw.WithdrwalMoney()
 	} else {
 		fmt.Println("Thank you for visiting us!")
 	}
 
-}
-
-func depositMoney(balance float64) float64 {
-	var value float64
-	fmt.Print("Enter amount to deposite: ")
-	fmt.Scan(&value)
-	balance = balance + value
-	return balance
 }
 
 func WithDrwalMoney(balance float64) float64 {
@@ -51,8 +43,4 @@ func WithDrwalMoney(balance float64) float64 {
 		fmt.Println("insufficient amount")
 	}
 	return balance
-}
-
-func printBalance(balance float64) {
-	fmt.Printf("Your balance: $%v\n", balance)
 }
