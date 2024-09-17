@@ -2,33 +2,29 @@ package deposit
 
 import (
 	"fmt"
-	users "go-bank/usersHandler"
+	"go-bank/usersHandler"
 )
 
 func DepositAmout() error {
+	database, err := usersHandler.ConnectWithDB()
+	if err != nil {
+		return err
+	}
+	defer database.Close()
 	var address string
 	var amount int64
-	bank, _ := users.ReadBankData()
 
-	fmt.Println("Enter your address")
+	fmt.Println("Enter your address: ")
 	fmt.Scan(&address)
-
-	if _, exists := bank.Users[address]; !exists {
-		fmt.Printf("User could not find")
-		return nil
-	}
 
 	fmt.Println("Enter amount")
 	fmt.Scan(&amount)
 
-	// Update user balance
-	bank.Users[address].Balance += amount
-
-	// Write updated bank data back to the file
-	err := users.WriteBankData(bank)
+	updateSQL := `UPDATE users SET balance = balance + $1 WHERE address = $2`
+	_, err = database.Exec(updateSQL, amount, address)
 	if err != nil {
-		return fmt.Errorf("error writing bank data: %v", err)
+		return err
 	}
-	fmt.Printf("\nUser balance updated successfully\n\n")
+	fmt.Println("Balance updated successfully")
 	return nil
 }

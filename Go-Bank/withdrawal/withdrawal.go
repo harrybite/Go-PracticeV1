@@ -1,61 +1,56 @@
 package withdrawal
 
+// "fmt"
 import (
 	"fmt"
-	users "go-bank/usersHandler"
+	"go-bank/usersHandler"
+	"strconv"
 )
 
 func WithdrawalMoney() error {
-	var address string
-	var amount int64
-	var pin int
-	bank, err := users.ReadBankData()
+	database, err := usersHandler.ConnectWithDB()
 	if err != nil {
-		return fmt.Errorf("error reading bank data: %v", err)
+		return err
 	}
+	var address string
+	var amount float64
+	var pin int
 
-	fmt.Println("Enter your address:")
+	fmt.Println("Enter your address: ")
 	fmt.Scan(&address)
 
-	// Check if the user exists
-	if _, exists := bank.Users[address]; !exists {
-		fmt.Println("User not found")
-		return nil
-	}
-
-	fmt.Println("Enter your pin:")
-	fmt.Scan(&pin)
-
-	// Check if the entered PIN is correct
-	if bank.Users[address].Pin != pin {
-		fmt.Println("Incorrect PIN")
-		return nil
-	}
-
-	fmt.Println("Enter amount to withdraw:")
+	fmt.Println("Enter amount")
 	fmt.Scan(&amount)
 
-	// Validate the withdrawal amount
-	if amount <= 0 {
-		fmt.Println("Withdrawal amount must be positive")
-		return nil
-	}
+	fmt.Println("Enter pin")
+	fmt.Scan(&pin)
 
-	// Check if the withdrawal amount is greater than the user's balance
-	if amount > bank.Users[address].Balance {
-		fmt.Println("Insufficient balance")
-		return nil
-	}
+	queryRow := `SELECT pin, balance FROM users WHERE address = $1`
 
-	// Update user's balance
-	bank.Users[address].Balance -= amount
+	row := database.QueryRow(queryRow, address)
 
-	// Write updated bank data back to the file
-	err = users.WriteBankData(bank)
+	var fetchedpin int64
+	var fetchedbalance string
+	err = row.Scan(&fetchedpin, &fetchedbalance)
 	if err != nil {
-		return fmt.Errorf("error writing bank data: %v", err)
+		fmt.Println("error while fetching data: ", err)
+		return err
 	}
-
-	fmt.Println("Withdrawal successful")
+	if fetchedpin != int64(pin) {
+		return fmt.Errorf("invalid pin")
+	}
+	balanceFloat, _ := strconv.ParseFloat(fetchedbalance, 64)
+	if fetchedpin == int64(pin) {
+		if balanceFloat < amount {
+			return fmt.Errorf("insufficient fund")
+		}
+		updateSQL := `UPDATE users SET balance = balance - $1 WHERE address = $2`
+		_, err = database.Exec(updateSQL, amount, address)
+		if err != nil {
+			return err
+		}
+		fmt.Println("Amount Deposited")
+		fmt.Println("Left balance: ", balanceFloat-amount)
+	}
 	return nil
 }
